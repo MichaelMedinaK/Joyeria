@@ -30,9 +30,9 @@ public class Usuario {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
-    @Column(name = "rol", nullable = false, length = 50)
-    @Enumerated(EnumType.STRING)
-    private RolUsuario rol;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_rol", nullable = false)
+    private Rol rol;
 
     @Builder.Default
     @Column(name = "activo")
@@ -41,13 +41,17 @@ public class Usuario {
     @Column(name = "fecha_creacion", updatable = false)
     private LocalDateTime fechaCreacion;
 
+    @Column(name = "fecha_actualizacion")
+    private LocalDateTime fechaActualizacion;
+
     @PrePersist
     protected void onCreate() {
         fechaCreacion = LocalDateTime.now();
+        fechaActualizacion = LocalDateTime.now();
     }
 
-    public enum RolUsuario {
-        ADMIN,
-        VENDEDOR
+    @PreUpdate
+    protected void onUpdate() {
+        fechaActualizacion = LocalDateTime.now();
     }
 }

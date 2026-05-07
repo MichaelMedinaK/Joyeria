@@ -32,9 +32,9 @@ public class Pedido {
     @JoinColumn(name = "id_usuario", nullable = false)
     private Usuario usuario;
 
-    @Column(name = "estado", nullable = false, length = 50)
-    @Enumerated(EnumType.STRING)
-    private EstadoPedido estado;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_estado_pedido", nullable = false)
+    private EstadoPedido estadoPedido;
 
     @Builder.Default
     @Column(name = "kilometros", nullable = false, precision = 10, scale = 2)
@@ -59,6 +59,26 @@ public class Pedido {
     @Column(name = "fecha_pedido", updatable = false)
     private LocalDateTime fechaPedido;
 
+    @Column(name = "fecha_actualizacion")
+    private LocalDateTime fechaActualizacion;
+
+    @Column(name = "fecha_entrega")
+    private java.time.LocalDate fechaEntrega;
+
+    @Column(name = "rango_horario", length = 50)
+    private String rangoHorario;
+
+    @Column(name = "tipo_pago", length = 50)
+    private String tipoPago; // EFECTIVO, TRANSFERENCIA, MIXTO
+
+    @Builder.Default
+    @Column(name = "efectivo", precision = 12, scale = 2)
+    private BigDecimal efectivo = BigDecimal.ZERO;
+
+    @Builder.Default
+    @Column(name = "transferencia", precision = 12, scale = 2)
+    private BigDecimal transferencia = BigDecimal.ZERO;
+
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<PedidoDetalle> detalles = new ArrayList<>();
@@ -66,13 +86,11 @@ public class Pedido {
     @PrePersist
     protected void onCreate() {
         fechaPedido = LocalDateTime.now();
+        fechaActualizacion = LocalDateTime.now();
     }
 
-    public enum EstadoPedido {
-        PENDIENTE,
-        EN_PROCESO,
-        EN_CAMINO,
-        ENTREGADO,
-        CANCELADO
+    @PreUpdate
+    protected void onUpdate() {
+        fechaActualizacion = LocalDateTime.now();
     }
 }

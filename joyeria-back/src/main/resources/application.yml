@@ -9,8 +9,8 @@ spring:
   # CONFIGURACIÓN DE BASE DE DATOS POSTGRESQL (SUPABASE)
   # =====================================================
   datasource:
-    url: ${DB_URL:jdbc:postgresql://db.kwnimpgoticbvkixwnsf.supabase.co:5432/postgres?sslmode=require}
-    username: ${DB_USERNAME:postgres}
+    url: jdbc:postgresql://aws-1-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require
+    username: postgres.kwnimpgoticbvkixwnsf
     password: ${DB_PASSWORD:MpvauMA2Pm2uVOZI}
     driver-class-name: org.postgresql.Driver
     
@@ -28,9 +28,8 @@ spring:
   # CONFIGURACIÓN JPA / HIBERNATE
   # =====================================================
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
     show-sql: true
     open-in-view: false
     properties:

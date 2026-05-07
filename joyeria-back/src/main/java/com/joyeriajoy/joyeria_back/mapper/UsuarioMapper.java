@@ -8,6 +8,6 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface UsuarioMapper {
 
-    @Mapping(target = "rol", expression = "java(usuario.getRol().name())")
+    @Mapping(target = "rol", source = "rol.codigo")
     UsuarioResponse toResponse(Usuario usuario);
 }

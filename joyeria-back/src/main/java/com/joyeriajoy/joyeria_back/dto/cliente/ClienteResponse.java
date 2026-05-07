@@ -16,7 +16,6 @@ public class ClienteResponse {
     private Long idCliente;
     private String nombre;
     private String telefono;
-    private String email;
-    private String documento;
+    private String direccion;
     private LocalDateTime fechaCreacion;
 }

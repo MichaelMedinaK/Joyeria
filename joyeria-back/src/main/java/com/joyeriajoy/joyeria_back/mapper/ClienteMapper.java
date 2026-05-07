@@ -14,9 +14,11 @@ public interface ClienteMapper {
 
     @Mapping(target = "idCliente", ignore = true)
     @Mapping(target = "fechaCreacion", ignore = true)
+    @Mapping(target = "fechaActualizacion", ignore = true)
     Cliente toEntity(ClienteRequest request);
 
     @Mapping(target = "idCliente", ignore = true)
     @Mapping(target = "fechaCreacion", ignore = true)
+    @Mapping(target = "fechaActualizacion", ignore = true)
     void updateEntityFromRequest(ClienteRequest request, @MappingTarget Cliente cliente);
 }

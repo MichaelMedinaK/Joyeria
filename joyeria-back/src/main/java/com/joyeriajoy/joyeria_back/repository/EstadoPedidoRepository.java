@@ -1,0 +1,15 @@
+package com.joyeriajoy.joyeria_back.repository;
+
+import com.joyeriajoy.joyeria_back.model.entity.EstadoPedido;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+
+@Repository
+public interface EstadoPedidoRepository extends JpaRepository<EstadoPedido, Long> {
+    
+    Optional<EstadoPedido> findByCodigo(String codigo);
+    
+    boolean existsByCodigo(String codigo);
+}

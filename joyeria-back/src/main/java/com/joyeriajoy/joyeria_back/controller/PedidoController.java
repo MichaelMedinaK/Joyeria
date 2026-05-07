@@ -3,6 +3,7 @@ package com.joyeriajoy.joyeria_back.controller;
 import com.joyeriajoy.joyeria_back.dto.common.ApiResponse;
 import com.joyeriajoy.joyeria_back.dto.pedido.PedidoRequest;
 import com.joyeriajoy.joyeria_back.dto.pedido.PedidoResponse;
+import com.joyeriajoy.joyeria_back.dto.pedido.PedidoUpdateRequest;
 import com.joyeriajoy.joyeria_back.service.PedidoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -71,6 +72,15 @@ public class PedidoController {
         PedidoResponse pedido = pedidoService.createPedido(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Pedido creado exitosamente", pedido));
+    }
+
+    @PatchMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'VENDEDOR')")
+    public ResponseEntity<ApiResponse<PedidoResponse>> updatePedido(
+            @PathVariable Long id,
+            @Valid @RequestBody PedidoUpdateRequest request) {
+        PedidoResponse pedido = pedidoService.updatePedido(id, request);
+        return ResponseEntity.ok(ApiResponse.success("Pedido actualizado exitosamente", pedido));
     }
 
     @PatchMapping("/{id}/estado")

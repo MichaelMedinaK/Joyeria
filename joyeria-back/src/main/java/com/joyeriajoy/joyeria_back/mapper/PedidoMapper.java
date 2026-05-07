@@ -16,7 +16,7 @@ public interface PedidoMapper {
     @Mapping(target = "nombreCliente", source = "cliente.nombre")
     @Mapping(target = "idUsuario", source = "usuario.idUsuario")
     @Mapping(target = "nombreUsuario", source = "usuario.nombre")
-    @Mapping(target = "estado", expression = "java(pedido.getEstado().name())")
+    @Mapping(target = "estado", source = "estadoPedido.codigo")
     PedidoResponse toResponse(Pedido pedido);
 
     @Mapping(target = "idProducto", source = "producto.idProducto")

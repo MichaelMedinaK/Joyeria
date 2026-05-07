@@ -3,18 +3,23 @@ package com.joyeriajoy.joyeria_back.service;
 import com.joyeriajoy.joyeria_back.dto.auth.LoginRequest;
 import com.joyeriajoy.joyeria_back.dto.auth.LoginResponse;
 import com.joyeriajoy.joyeria_back.dto.auth.RegisterRequest;
+import com.joyeriajoy.joyeria_back.dto.auth.UpdateUsuarioRequest;
 import com.joyeriajoy.joyeria_back.exception.BadRequestException;
+import com.joyeriajoy.joyeria_back.exception.ResourceNotFoundException;
+import com.joyeriajoy.joyeria_back.model.entity.Rol;
 import com.joyeriajoy.joyeria_back.model.entity.Usuario;
+import com.joyeriajoy.joyeria_back.repository.RolRepository;
 import com.joyeriajoy.joyeria_back.repository.UsuarioRepository;
 import com.joyeriajoy.joyeria_back.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
+    private final RolRepository rolRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
@@ -34,12 +40,9 @@ public class AuthService {
             throw new BadRequestException("El email ya está registrado");
         }
 
-        Usuario.RolUsuario rol;
-        try {
-            rol = Usuario.RolUsuario.valueOf(request.getRol().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Rol inválido. Debe ser ADMIN o VENDEDOR");
-        }
+        // Buscar rol por código
+        Rol rol = rolRepository.findByCodigo(request.getRol().toUpperCase())
+                .orElseThrow(() -> new BadRequestException("Rol inválido. Debe ser ADMIN, VENDEDOR o REVENDEDOR"));
 
         Usuario usuario = Usuario.builder()
                 .nombre(request.getNombre())
@@ -52,7 +55,7 @@ public class AuthService {
         usuario = usuarioRepository.save(usuario);
         log.info("Usuario registrado exitosamente con ID: {}", usuario.getIdUsuario());
 
-        String token = jwtUtil.generateToken(usuario.getEmail(), usuario.getRol().name());
+        String token = jwtUtil.generateToken(usuario.getEmail(), usuario.getRol().getCodigo());
 
         return LoginResponse.builder()
                 .token(token)
@@ -60,7 +63,7 @@ public class AuthService {
                 .idUsuario(usuario.getIdUsuario())
                 .nombre(usuario.getNombre())
                 .email(usuario.getEmail())
-                .rol(usuario.getRol().name())
+                .rol(usuario.getRol().getCodigo())
                 .build();
     }
 
@@ -77,7 +80,7 @@ public class AuthService {
                 .orElseThrow(() -> new BadRequestException("Usuario no encontrado"));
 
         // Generar token
-        String token = jwtUtil.generateToken(usuario.getEmail(), usuario.getRol().name());
+        String token = jwtUtil.generateToken(usuario.getEmail(), usuario.getRol().getCodigo());
 
         log.info("Login exitoso para: {}", request.getEmail());
 
@@ -87,7 +90,61 @@ public class AuthService {
                 .idUsuario(usuario.getIdUsuario())
                 .nombre(usuario.getNombre())
                 .email(usuario.getEmail())
-                .rol(usuario.getRol().name())
+                .rol(usuario.getRol().getCodigo())
+                .build();
+    }
+
+    @Transactional
+    public LoginResponse updateUsuario(Long idUsuario, UpdateUsuarioRequest request, String emailUsuarioAutenticado) {
+        log.info("Actualizando usuario ID: {} (solicitado por: {})", idUsuario, emailUsuarioAutenticado);
+
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario", "id", idUsuario));
+
+        // Validar que el usuario autenticado sea el mismo que se intenta modificar
+        Usuario usuarioAutenticado = usuarioRepository.findByEmail(emailUsuarioAutenticado)
+                .orElseThrow(() -> new BadRequestException("Usuario autenticado no encontrado"));
+
+        // Solo el mismo usuario o un ADMIN pueden modificar
+        if (!usuario.getIdUsuario().equals(usuarioAutenticado.getIdUsuario()) && 
+            !"ADMIN".equals(usuarioAutenticado.getRol().getCodigo())) {
+            throw new BadRequestException("No tienes permisos para modificar este usuario");
+        }
+
+        // Actualizar solo los campos proporcionados
+        if (request.getNombre() != null && !request.getNombre().trim().isEmpty()) {
+            usuario.setNombre(request.getNombre());
+            log.info("Actualizando nombre a: {}", request.getNombre());
+        }
+
+        if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
+            // Verificar que el email no esté en uso por otro usuario
+            if (!request.getEmail().equals(usuario.getEmail()) && 
+                usuarioRepository.existsByEmail(request.getEmail())) {
+                throw new BadRequestException("El email ya está registrado");
+            }
+            usuario.setEmail(request.getEmail());
+            log.info("Actualizando email a: {}", request.getEmail());
+        }
+
+        if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
+            usuario.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+            log.info("Actualizando contraseña");
+        }
+
+        usuario = usuarioRepository.save(usuario);
+        log.info("Usuario actualizado exitosamente");
+
+        // Generar nuevo token con el email actualizado
+        String token = jwtUtil.generateToken(usuario.getEmail(), usuario.getRol().getCodigo());
+
+        return LoginResponse.builder()
+                .token(token)
+                .tipo("Bearer")
+                .idUsuario(usuario.getIdUsuario())
+                .nombre(usuario.getNombre())
+                .email(usuario.getEmail())
+                .rol(usuario.getRol().getCodigo())
                 .build();
     }
 }

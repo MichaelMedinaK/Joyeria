@@ -24,20 +24,26 @@ public class Cliente {
     @Column(name = "nombre", nullable = false, length = 150)
     private String nombre;
 
-    @Column(name = "telefono", length = 50)
+    @Column(name = "telefono", nullable = false, length = 50)
     private String telefono;
 
-    @Column(name = "email", length = 150)
-    private String email;
-
-    @Column(name = "documento", length = 50)
-    private String documento;
+    @Column(name = "direccion", nullable = false, length = 200)
+    private String direccion;
 
     @Column(name = "fecha_creacion", updatable = false)
     private LocalDateTime fechaCreacion;
 
+    @Column(name = "fecha_actualizacion")
+    private LocalDateTime fechaActualizacion;
+
     @PrePersist
     protected void onCreate() {
         fechaCreacion = LocalDateTime.now();
+        fechaActualizacion = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        fechaActualizacion = LocalDateTime.now();
     }
 }

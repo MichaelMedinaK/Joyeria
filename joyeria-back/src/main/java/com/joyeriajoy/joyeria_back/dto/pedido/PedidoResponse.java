@@ -27,5 +27,10 @@ public class PedidoResponse {
     private BigDecimal total;
     private BigDecimal gananciaTotal;
     private LocalDateTime fechaPedido;
+    private java.time.LocalDate fechaEntrega;
+    private String rangoHorario;
+    private String tipoPago;
+    private BigDecimal efectivo;
+    private BigDecimal transferencia;
     private List<PedidoDetalleResponse> detalles;
 }
